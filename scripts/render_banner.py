@@ -23,17 +23,26 @@ IH, IW = img.shape
 EYES = [((130 - CROP[0], 296 - CROP[1]), (62, 46)), ((452 - CROP[0], 204 - CROP[1]), (86, 58))]      # (centre, radii) in image pixels
 TIP = (632 - CROP[0], 716 - CROP[1])                                             # burning end of the cigarette
 
-def closed_eyes(src):
-    """same picture with the eyelids shut: fill each eye with fur from just above it, then draw the lid"""
+def closed_eyes(src, frac=1.0):
+    """eyelids lowered to `frac` (0 open .. 1 shut): fur from above slides over the eye, lid edge drawn at the bottom"""
     out = src.copy()
     for (cx, cy), (rx, ry) in EYES:
-        m = np.zeros_like(src, np.uint8); cv2.ellipse(m, (cx, cy), (rx, ry), 0, 0, 360, 1, -1)
-        dy = int(ry * 1.55)
-        shifted = np.roll(src, dy, axis=0)
-        out[m > 0] = shifted[m > 0]
-        pts = np.array([(cx - rx, cy - 4), (cx - rx // 2, cy + ry // 5), (cx, cy + ry // 4), (cx + rx // 2, cy + ry // 6), (cx + rx, cy - 6)], np.int32)
-        cv2.polylines(out, [pts], False, 0.0, max(5, ry // 6), cv2.LINE_AA)
-        cv2.polylines(out, [pts - [0, max(5, ry // 6)]], False, 1.0, 2, cv2.LINE_AA)
+        ell = np.zeros_like(src, np.uint8); cv2.ellipse(ell, (cx, cy), (rx, ry), 0, 0, 360, 1, -1)
+        yl = cy - ry + 2 * ry * frac * .92                       # where the lid edge sits
+        yy, xx = np.mgrid[0:src.shape[0], 0:src.shape[1]]
+        bulge = (1 - ((xx - cx) / rx) ** 2).clip(0) * ry * .18 * frac   # lid edge curves down in the middle
+        m = (ell > 0) & (yy < yl + bulge)
+        shifted = np.roll(src, int(ry * 1.55), axis=0)
+        out[m] = shifted[m]
+        xs = np.linspace(cx - rx, cx + rx, 13)
+        pts = []
+        for x in xs:
+            dy = ry * math.sqrt(max(0, 1 - ((x - cx) / rx) ** 2))
+            y = min(yl + (1 - ((x - cx) / rx) ** 2) * ry * .18 * frac, cy + dy)
+            pts.append((int(x), int(max(cy - dy, y))))
+        pts = np.array(pts, np.int32); t = max(5, ry // 6)
+        cv2.polylines(out, [pts], False, 0.0, t, cv2.LINE_AA)
+        cv2.polylines(out, [pts - [0, t]], False, 1.0, 2, cv2.LINE_AA)
     return out
 
 # ---- grid
@@ -55,7 +64,7 @@ def ascii_grid(src):
             line.append(("@", 3))
         out.append(line)
     return out
-A = ascii_grid(img); B = ascii_grid(closed_eyes(img))
+A = ascii_grid(img); LEVELS = [.35, .7, 1.0]; BS = [ascii_grid(closed_eyes(img, f)) for f in LEVELS]
 tipc, tipr = TIP[0] / pw, TIP[1] / ph
 
 def cx(c): return X0 + c * CW
@@ -67,7 +76,8 @@ for r in range(ROWS):
     for c in range(COLS):
         dd = math.hypot((c - tipc) * pw, (r - tipr) * ph)
         if dd < 30 and A[r][c][0] != " ":
-            (core if dd < 13 else ember).append((r, c, A[r][c][0])); A[r][c] = (" ", 0); B[r][c] = (" ", 0)
+            (core if dd < 13 else ember).append((r, c, A[r][c][0])); A[r][c] = (" ", 0)
+            for B in BS: B[r][c] = (" ", 0)
 
 def runs(cells_, c0=0):
     """row of (char, tone) -> tspans with explicit x, grouped by tone; spaces are skipped, never relied on"""
@@ -87,16 +97,29 @@ def rows_text(grid, cls):
         if any(ch != " " for ch, _ in row): out.append(f'<text y="{ry(r):.1f}" class="{cls}">{runs(row)}</text>')
     return "".join(out)
 
-# eye overlay: segments where the closed picture differs
-lid = []
-for (ecx, ecy), (erx, ery) in EYES:
-    r0, r1 = int((ecy - ery * 1.3) / ph), int((ecy + ery * 1.3) / ph) + 1
-    c0, c1 = int((ecx - erx * 1.2) / pw), int((ecx + erx * 1.2) / pw) + 1
-    for r in range(max(r0, 0), min(r1, ROWS)):
-        seg = B[r][c0:c1]
-        if seg != A[r][c0:c1]:
-            lid.append(f'<rect x="{cx(c0):.1f}" y="{ry(r)-FS*.82:.1f}" width="{(c1-c0)*CW:.1f}" height="{FS+.4:.1f}" fill="{CARD}"/>'
-                       f'<text y="{ry(r):.1f}" class="cat">{runs(seg, c0)}</text>')
+# eye overlays, one group per closure level: segments where that picture differs from the open one
+lidg = []
+for B in BS:
+    lid = []
+    for (ecx, ecy), (erx, ery) in EYES:
+        r0, r1 = int((ecy - ery * 1.3) / ph), int((ecy + ery * 1.3) / ph) + 1
+        c0, c1 = int((ecx - erx * 1.2) / pw), int((ecx + erx * 1.2) / pw) + 1
+        for r in range(max(r0, 0), min(r1, ROWS)):
+            seg = B[r][c0:c1]
+            if seg != A[r][c0:c1]:
+                lid.append(f'<rect x="{cx(c0):.1f}" y="{ry(r)-FS*.82:.1f}" width="{(c1-c0)*CW:.1f}" height="{FS+.4:.1f}" fill="{CARD}"/>'
+                           f'<text y="{ry(r):.1f}" class="cat">{runs(seg, c0)}</text>')
+    lidg.append(lid)
+
+# blink script over a 11 s loop: (level index, start %, end %). a normal blink, a slow sleepy squint, a quick double
+BLINK = [(0, 30, 31), (1, 31, 32.2), (2, 32.2, 34.6), (1, 34.6, 35.8), (0, 35.8, 37.4),
+         (0, 62, 63.5), (1, 63.5, 75), (2, 75, 77.5), (1, 77.5, 79.5), (0, 79.5, 82),
+         (0, 92, 92.6), (2, 92.6, 93.8), (0, 93.8, 94.4), (0, 95.6, 96.2), (2, 96.2, 97.3), (0, 97.3, 98)]
+def lid_keys(k):
+    stops = ["0%{opacity:0}", "100%{opacity:0}"]
+    for lv, a, b in BLINK:
+        if lv == k: stops += [f"{a-.01:.2f}%{{opacity:0}}", f"{a:.2f}%{{opacity:1}}", f"{b:.2f}%{{opacity:1}}", f"{b+.01:.2f}%{{opacity:0}}"]
+    return f"@keyframes lid{k}{{{''.join(stops)}}}"
 
 def cells(lst, cls):
     return "".join(f'<text x="{cx(c):.1f}" y="{ry(r):.1f}" class="{cls}">{escape(ch)}</text>' for r, c, ch in lst)
@@ -104,17 +127,17 @@ def cells(lst, cls):
 # ---- smoke
 rnd = random.Random(7); TX, TY = cx(tipc), ry(tipr) - FS * .4
 smoke, keys = [], []
-for i in range(18):
-    ch = rnd.choice("~~~()'.°`")
-    dur = rnd.uniform(5.5, 8); delay = -rnd.uniform(0, dur); top = rnd.uniform(260, 430); drift = rnd.uniform(-90, 10)
-    sw = rnd.uniform(10, 26); k = f"s{i}"
-    keys.append(f"@keyframes {k}{{0%{{transform:translate(0,0) scale(.7);opacity:0}}12%{{opacity:.75}}"
+for i in range(90):
+    ch = rnd.choice("~~~~()()'.°`*:")
+    dur = rnd.uniform(6, 10); delay = -rnd.uniform(0, dur); top = rnd.uniform(240, 520); drift = rnd.uniform(-90, 70)
+    sw = rnd.uniform(12, 38); k = f"s{i}"
+    keys.append(f"@keyframes {k}{{0%{{transform:translate(0,0) scale(.7);opacity:0}}8%{{opacity:.95}}"
                 f"35%{{transform:translate({drift*.3+sw:.0f}px,{-top*.35:.0f}px) scale(1.1)}}"
-                f"65%{{transform:translate({drift*.65-sw:.0f}px,{-top*.68:.0f}px) scale(1.5);opacity:.45}}"
-                f"100%{{transform:translate({drift:.0f}px,{-top:.0f}px) scale(2);opacity:0}}}}")
+                f"65%{{transform:translate({drift*.65-sw:.0f}px,{-top*.68:.0f}px) scale(1.9);opacity:.7}}"
+                f"100%{{transform:translate({drift:.0f}px,{-top:.0f}px) scale(2.4);opacity:0}}}}")
     st = "" if STATIC else f' style="animation:{k} {dur:.2f}s cubic-bezier(.3,.1,.5,1) {delay:.2f}s infinite"'
     op = "" if not STATIC else f' opacity="{.5 if i % 3 else 0}" transform="translate({drift*.4:.0f},{-top*.45:.0f})"'
-    smoke.append(f'<text x="{TX:.1f}" y="{TY:.1f}" class="smoke"{st}{op}>{escape(ch)}</text>')
+    smoke.append(f'<text x="{TX:.1f}" y="{TY:.1f}" class="smoke"{st}{op} font-size="{FS*rnd.uniform(1.3, 2.4):.1f}">{escape(ch)}</text>')
 
 # ---- terminal text on the left
 lines = [("~/bin", MUTED, 0), ("", None, 0), ("$ whoami", GREEN, 1), ("bin", INK, 1), ("", None, 0),
@@ -143,28 +166,28 @@ font += "@font-face{font-family:MX;src:url(data:font/woff2;base64,%s) format('wo
 
 css = font + f""".M,.cat,.emb,.core,.smoke{{font-family:M,ui-monospace,Menlo,monospace;white-space:pre}}
 .cat{{font-family:MX,ui-monospace,Menlo,monospace;font-weight:800;font-size:{FS:.2f}px;fill:#e9e9e9}}.emb{{font-size:{FS:.2f}px;fill:{EMBER}}}.core{{font-size:{FS:.2f}px;fill:{CORE}}}
-.smoke{{font-size:{FS*1.5:.1f}px;fill:#cfcfcf;transform-box:fill-box;transform-origin:50% 50%}}
+.smoke{{font-size:{FS*1.7:.1f}px;fill:#d8d8d8;stroke:{CARD};stroke-width:3px;paint-order:stroke;stroke-linejoin:round;transform-box:fill-box;transform-origin:50% 50%}}
 """
 if not STATIC:
     css += f"""
 @keyframes up{{from{{opacity:0;transform:translateY(8px)}}to{{opacity:1;transform:none}}}}
 @keyframes blinkc{{0%,100%{{opacity:1}}50%{{opacity:0}}}}
-@keyframes lid{{0%,90.5%,94.5%,96%,99%,100%{{opacity:0}}91.5%,93.5%,97%,98%{{opacity:1}}}}
-@keyframes breathe{{0%,100%{{transform:translateY(0) rotate(0deg)}}30%{{transform:translateY(-1.6px) rotate(-.35deg)}}60%{{transform:translateY(-.6px) rotate(.25deg)}}}}
+{"".join(lid_keys(k) for k in range(len(LEVELS)))}
+@keyframes breathe{{0%,100%{{transform:translate(0,0) rotate(0deg)}}18%{{transform:translate(-3px,-4px) rotate(-1.6deg)}}38%{{transform:translate(-1px,-6px) rotate(-.6deg)}}55%{{transform:translate(3px,-2px) rotate(1.4deg)}}72%{{transform:translate(4px,-5px) rotate(2deg)}}88%{{transform:translate(1px,-1px) rotate(.5deg)}}}}
 @keyframes flick{{0%,100%{{opacity:1}}18%{{opacity:.7}}34%{{opacity:.95}}52%{{opacity:.6}}70%{{opacity:1}}86%{{opacity:.75}}}}
 @keyframes glow{{0%,100%{{opacity:.55}}40%{{opacity:.95}}75%{{opacity:.4}}}}
 .cur{{animation:blinkc 1s step-end infinite}}
-.lids{{opacity:0;animation:lid 6.5s linear 1.5s infinite}}
-.head{{transform-origin:{X0+COLS*CW/2:.0f}px {H}px;animation:breathe 5.2s ease-in-out infinite}}
+{"".join(f".lid{k}{{opacity:0;animation:lid{k} 11s linear infinite}}" for k in range(len(LEVELS)))}
+.head{{transform-origin:{X0+COLS*CW/2:.0f}px {H}px;animation:breathe 9s ease-in-out infinite}}
 .ember{{animation:flick 1.7s ease-in-out infinite}}.halo{{animation:glow 2.3s ease-in-out infinite}}
 {"".join(keys)}
-@media (prefers-reduced-motion:reduce){{*{{animation:none!important}}.lids{{opacity:0!important}}}}
+@media (prefers-reduced-motion:reduce){{*{{animation:none!important}}[class^=lid]{{opacity:0!important}}}}
 """
 body = (f'<defs><clipPath id="cl"><rect x="1" y="1" width="{W-2}" height="{H-2}" rx="13"/></clipPath>'
         f'<filter id="bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter>'
         f'<radialGradient id="hg"><stop offset="0" stop-color="{EMBER}" stop-opacity=".9"/><stop offset="1" stop-color="{EMBER}" stop-opacity="0"/></radialGradient></defs>'
         f'<rect x=".5" y=".5" width="{W-1}" height="{H-1}" rx="14" fill="{CARD}"/>'
-        f'<g clip-path="url(#cl)"><g class="head">{rows_text(A, "cat")}<g class="lids">{"".join(lid)}</g>'
+        f'<g clip-path="url(#cl)"><g class="head">{rows_text(A, "cat")}{"" if STATIC else "".join(f'<g class="lid{k}">{"".join(l)}</g>' for k, l in enumerate(lidg))}'
         f'<g class="halo"><circle cx="{TX:.1f}" cy="{TY:.1f}" r="38" fill="url(#hg)" opacity=".55"/>'
         f'<g filter="url(#bl)">{cells(ember+core, "emb")}</g></g>'
         f'<g class="ember">{cells(ember, "emb")}{cells(core, "core")}</g></g>'
@@ -172,4 +195,4 @@ body = (f'<defs><clipPath id="cl"><rect x="1" y="1" width="{W-2}" height="{H-2}"
         f'{term}<rect x=".5" y=".5" width="{W-1}" height="{H-1}" rx="14" fill="none" stroke="{LINE}"/>')
 svg = f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" role="img" xml:space="preserve"><style>{css}</style>{body}</svg>'
 os.makedirs(OUT, exist_ok=True); open(os.path.join(OUT, "banner.svg"), "w").write(svg)
-print("banner", COLS, "x", ROWS, len(svg) // 1024, "KB", "ember", len(ember), "core", len(core), "lid segs", len(lid))
+print("banner", COLS, "x", ROWS, len(svg) // 1024, "KB", "ember", len(ember), "core", len(core), "lid segs", [len(l) for l in lidg])
