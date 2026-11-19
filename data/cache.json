@@ -1,10 +1,10 @@
 {
  "name": "binnanee",
  "followers": 50,
- "public_repos": 22,
+ "public_repos": 23,
  "stars": 43,
  "forks": 52,
- "contributions": 42,
+ "contributions": 43,
  "days": [
   {
    "date": "2025-11-16",
@@ -800,11 +800,11 @@
   },
   {
    "date": "2026-06-02",
-   "contributionCount": 0
+   "contributionCount": 1
   },
   {
    "date": "2026-06-03",
-   "contributionCount": 2
+   "contributionCount": 1
   },
   {
    "date": "2026-06-04",
@@ -892,11 +892,11 @@
   },
   {
    "date": "2026-06-25",
-   "contributionCount": 0
+   "contributionCount": 1
   },
   {
    "date": "2026-06-26",
-   "contributionCount": 1
+   "contributionCount": 0
   },
   {
    "date": "2026-06-27",
@@ -1428,11 +1428,11 @@
   },
   {
    "date": "2026-11-06",
-   "contributionCount": 1
+   "contributionCount": 2
   },
   {
    "date": "2026-11-07",
-   "contributionCount": 1
+   "contributionCount": 0
   },
   {
    "date": "2026-11-08",
@@ -1480,15 +1480,15 @@
   },
   {
    "date": "2026-11-19",
-   "contributionCount": 0
+   "contributionCount": 1
   }
  ],
  "langs": {
   "HTML": 730155,
+  "Python": 24395,
   "TypeScript": 2800937,
   "CSS": 17988,
-  "JavaScript": 19963,
-  "Python": 8118
+  "JavaScript": 19963
  },
  "repos": {
   "2026-phao-hoa": {
@@ -1510,6 +1510,11 @@
    "stars": 0,
    "forks": 0,
    "lang": "HTML"
+  },
+  "Dhao1601": {
+   "stars": 0,
+   "forks": 0,
+   "lang": "Python"
   },
   "fly-mess-lite": {
    "stars": 0,
