@@ -62,6 +62,7 @@ FONTS = {
     "mono": instancer.instantiateVariableFont(TTFont(os.path.join(ROOT, "fonts", "JetBrainsMono-VF.ttf")), {"wght": 400}),
     "monob": instancer.instantiateVariableFont(_vf, {"wght": 700}),
     "serif": TTFont(os.path.join(ROOT, "fonts", "InstrumentSerif-Regular.ttf")),
+    "serifi": TTFont(os.path.join(ROOT, "fonts", "InstrumentSerif-Italic.ttf")),
 }
 def font_face(name, text):
     buf = io.BytesIO(); FONTS[name].save(buf); buf.seek(0)
@@ -69,7 +70,7 @@ def font_face(name, text):
     opts = subset.Options(); opts.flavor = "woff2"; opts.layout_features = ["kern", "liga", "ccmp", "mark", "mkmk"]
     s = subset.Subsetter(opts); s.populate(text=text + " "); s.subset(f)
     out = io.BytesIO(); f.flavor = "woff2"; f.save(out)
-    fam = {"mono": "M", "monob": "MB", "serif": "S"}[name]
+    fam = {"mono": "M", "monob": "MB", "serif": "S", "serifi": "SI"}[name]
     return "@font-face{font-family:%s;src:url(data:font/woff2;base64,%s) format('woff2')}" % (fam, base64.b64encode(out.getvalue()).decode())
 
 ANIM = """
@@ -80,6 +81,10 @@ ANIM = """
 @keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.pop{transform-box:fill-box;transform-origin:50% 50%;animation:pop .45s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes glow{0%,100%{opacity:1}50%{opacity:.4}}
+.tile{transform-box:fill-box;transform-origin:50% 50%}
 @keyframes flash{0%,100%{opacity:1}}
 @keyframes show{from{opacity:1}to{opacity:1}}
 @keyframes type{from{transform:scaleX(0)}to{transform:scaleX(1)}}
@@ -93,7 +98,7 @@ ANIM = """
 """
 def svg(w, h, body, fonts, text):
     css = "".join(font_face(n, text) for n in fonts)
-    css += ".M{font-family:M,ui-monospace,Menlo,monospace}.MB{font-family:MB,ui-monospace,Menlo,monospace;font-weight:700}.S{font-family:S,Georgia,serif}"
+    css += ".M{font-family:M,ui-monospace,Menlo,monospace}.MB{font-family:MB,ui-monospace,Menlo,monospace;font-weight:700}.S{font-family:S,Georgia,serif}.SI{font-family:SI,Georgia,serif;font-style:italic}"
     if not STATIC: css += ANIM
     else: body = body.replace("<animate", "<!--a").replace("</animate>", "-->")
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img">'
@@ -169,26 +174,26 @@ for i, (lab, val) in enumerate(items):
     body += counter(round(x, 1), 108, val, "S", 52, .4 + i * .12) + '</g>'
 write("stats.svg", svg(W, 150, body, ["mono", "serif"], "".join(l for l, _ in items) + "0123456789"))
 
-# ------------------------------------------------------------------ activity (monthly bars, last 12 months)
-months = {}
-for dd in D["days"]: months[dd["date"][:7]] = months.get(dd["date"][:7], 0) + dd["contributionCount"]
-keys = sorted(months)[-12:]; vals = [months[k] for k in keys]; mx = max(vals + [1])
-H2 = 250; body = frame(W, H2)
-body += f'<g class="up"{d(.1)}><text x="36" y="46" class="M" font-size="11" fill="{MUTED}" letter-spacing="1.6">ACTIVITY · LAST 12 MONTHS</text>'
-body += f'<text x="{W-36}" y="46" class="M" font-size="11" fill="{MUTED}" letter-spacing="1.6" text-anchor="end">{D["contributions"]} CONTRIBUTIONS</text></g>'
-x0, x1, base, top = 36, W - 36, 200, 72
-bw = (x1 - x0) / len(keys)
-for y in (top, (top + base) / 2):
-    body += f'<line x1="{x0}" y1="{y}" x2="{x1}" y2="{y}" stroke="{LINE}" stroke-dasharray="2 4"/>'
-body += f'<line x1="{x0}" y1="{base}" x2="{x1}" y2="{base}" stroke="{LINE}"/>'
-for i, (k, v) in enumerate(zip(keys, vals)):
-    h = max(2, (base - top) * v / mx); bx = x0 + i * bw + bw * .22
-    shade = INK if v == mx else ("#cfcfcf" if v else DIM)
-    body += f'<rect class="bar" x="{bx:.1f}" y="{base-h:.1f}" width="{bw*.56:.1f}" height="{h:.1f}" rx="3" fill="{shade}"{d(.3+i*.06)}/>'
-    if v: body += f'<text x="{bx+bw*.28:.1f}" y="{base-h-8:.1f}" class="M fade" font-size="11" fill="{MUTED}" text-anchor="middle"{d(.9+i*.06)}>{v}</text>'
-    mon = dt.date(int(k[:4]), int(k[5:]), 1).strftime("%b").upper()
-    body += f'<text x="{bx+bw*.28:.1f}" y="{base+24}" class="M" font-size="11" fill="{DIM if v==0 else MUTED}" text-anchor="middle">{mon}</text>'
-write("activity.svg", svg(W, H2, body, ["mono"], "ACTIVITY·LAST12MONTHSCONTRIBUTIONSJANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC0123456789"))
+# ------------------------------------------------------------------ green pattern (decorative, not data)
+import math, random
+GREENS = ["#14211a", "#0e4429", "#006d32", "#26a641", "#39d353"]
+rnd = random.Random(1601)
+ncol, nrow = 53, 7
+x0, y0, c, gap = 40, 112, 14, 3.5
+H4 = int(y0 + nrow * (c + gap) + 34)
+body = frame(W, H4) + dots(W, H4, op=.05)
+body += (f'<g class="up"{d(.1)}><text x="36" y="76" font-size="50" fill="{INK}"><tspan class="S">Always building, </tspan>'
+         f'<tspan class="SI" fill="{GREENS[4]}">in green</tspan></text></g>')
+for col in range(ncol):
+    for row in range(nrow):
+        f = (math.sin(col * .31 + row * .55) + .7 * math.sin(col * .12 - row * .8 + 1.3) + .45 * math.sin(col * .53 + 2.1)) / 2.15
+        v = .5 + .5 * f + rnd.uniform(-.18, .18)
+        lv = max(0, min(4, int(v * 5.2)))
+        x, y = x0 + col * (c + gap), y0 + row * (c + gap)
+        anim = "" if STATIC else (f' style="animation:pop .45s cubic-bezier(.3,1.4,.5,1) {.2+col*.014+row*.01:.2f}s both,'
+                                  f'glow 3.6s ease-in-out {1.4+(col*.07+row*.05)%3.6:.2f}s infinite"')
+        body += f'<rect class="tile" x="{x:.1f}" y="{y:.1f}" width="{c}" height="{c}" rx="3.5" fill="{GREENS[lv]}"{anim}/>'
+write("heatmap.svg", svg(W, H4, body, ["serif", "serifi"], "Always building, in green"))
 
 # ------------------------------------------------------------------ stack (languages by bytes)
 tot = sum(D["langs"].values()) or 1
