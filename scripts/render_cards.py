@@ -17,6 +17,7 @@ STATIC = "--static" in sys.argv
 TOKEN = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
 
 BG, CARD, LINE, INK, MUTED, DIM = "#0a0a0a", "#0f0f0f", "#262626", "#fafafa", "#8b8b8b", "#3a3a3a"
+GREEN = "#39d353"
 
 # ------------------------------------------------------------------ data
 def api(path, query=None):
@@ -153,12 +154,12 @@ body = (frame(W, 270) + dots(W, 270) +
   f'<clipPath id="ty"><rect x="56" y="150" width="{tw:.1f}" height="26" style="{type_css}"/></clipPath></defs>'
   +
   f'<g class="up"{d(.1)}><text x="56" y="56" class="M" font-size="13" fill="{MUTED}" letter-spacing="2">~/{USER.upper()}</text>'
-  f'<circle cx="{W-160}" cy="51" r="4" fill="{INK}" class="pulse"/><text x="{W-146}" y="56" class="M" font-size="13" fill="{MUTED}" letter-spacing="2">ONLINE</text></g>'
+  f'<circle cx="{W-160}" cy="51" r="4" fill="{GREEN}" class="pulse"/><text x="{W-146}" y="56" class="M" font-size="13" fill="{MUTED}" letter-spacing="2">ONLINE</text></g>'
   f'<g class="up"{d(.35)}><text x="52" y="132" class="S" font-size="88" fill="#d9d9d9" letter-spacing="-1">{escape(name)}</text>'
   + ("" if STATIC else f'<g clip-path="url(#nm)"><rect x="0" y="50" width="200" height="100" fill="url(#sh)" style="animation:shine 6s cubic-bezier(.5,0,.3,1) 1.2s infinite both;transform:translateX(-260px)"/></g>')
   + '</g>'
-  f'<text x="56" y="168" class="M" font-size="15" fill="{INK}" clip-path="url(#ty)">{escape(tag)}</text>'
-  f'<g class="fade"{d(1.1+tdur)}><g class="cur"><rect x="{56+tw+3:.1f}" y="154" width="9" height="17" fill="{INK}"/></g></g>'
+  f'<text x="56" y="168" class="M" font-size="15" fill="{INK}" clip-path="url(#ty)"><tspan fill="{GREEN}">&gt;</tspan>{escape(tag[1:])}</text>'
+  f'<g class="fade"{d(1.1+tdur)}><g class="cur"><rect x="{56+tw+3:.1f}" y="154" width="9" height="17" fill="{GREEN}"/></g></g>'
   f'<line x1="56" y1="206" x2="{W-56}" y2="206" stroke="{LINE}"/>'
   f'<g class="fade"{d(2.6)}><text x="56" y="236" class="M" font-size="13" fill="{MUTED}">{escape(hand)}</text>'
   '</g>')
@@ -171,7 +172,7 @@ for i, (lab, val) in enumerate(items):
     x = cw2 * i + 36
     if i: body += f'<line x1="{cw2*i:.1f}" y1="32" x2="{cw2*i:.1f}" y2="118" stroke="{LINE}"/>'
     body += f'<g class="up"{d(.15+i*.12)}><text x="{x:.1f}" y="58" class="M" font-size="11" fill="{MUTED}" letter-spacing="1.6">{lab}</text>'
-    body += counter(round(x, 1), 108, val, "S", 52, .4 + i * .12) + '</g>'
+    body += counter(round(x, 1), 108, val, "S", 52, .4 + i * .12) + f'<rect x="{x:.1f}" y="120" width="22" height="2" rx="1" fill="{GREEN}"/></g>'
 write("stats.svg", svg(W, 150, body, ["mono", "serif"], "".join(l for l, _ in items) + "0123456789"))
 
 # ------------------------------------------------------------------ green pattern (decorative, not data)
@@ -198,7 +199,7 @@ write("heatmap.svg", svg(W, H4, body, ["serif", "serifi"], "Always building, in 
 # ------------------------------------------------------------------ stack (languages by bytes)
 tot = sum(D["langs"].values()) or 1
 L = sorted(D["langs"].items(), key=lambda kv: -kv[1])[:5]
-shades = [INK, "#bdbdbd", "#8b8b8b", "#5c5c5c", "#3d3d3d"]
+shades = [GREEN, INK, "#9a9a9a", "#5c5c5c", "#3d3d3d"]
 H3 = 130; body = frame(W, H3) + f'<text x="36" y="44" class="M up" font-size="11" fill="{MUTED}" letter-spacing="1.6"{d(.1)}>LANGUAGES · PUBLIC REPOS</text>'
 x, bw = 36, W - 72
 body += f'<clipPath id="bar"><rect x="36" y="62" width="{bw}" height="10" rx="5"/></clipPath><g clip-path="url(#bar)"><rect x="36" y="62" width="{bw}" height="10" fill="{DIM}"/>'
@@ -226,9 +227,9 @@ for i, p in enumerate(P["projects"]):
     w, h = 490, 210
     host = p["link"].split("//")[1].rstrip("/")
     body = (frame(w, h) +
-      f'<rect class="draw" x="1" y="1" width="{w-2}" height="{h-2}" rx="13" fill="none" stroke="{INK}" stroke-width="1.2" pathLength="1"{d(.1+i*.15)} opacity=".55"/>'
+      f'<rect class="draw" x="1" y="1" width="{w-2}" height="{h-2}" rx="13" fill="none" stroke="{GREEN}" stroke-width="1.2" pathLength="1"{d(.1+i*.15)} opacity=".7"/>'
       f'<g class="up"{d(.35+i*.15)}><text x="28" y="44" class="M" font-size="12" fill="{MUTED}" letter-spacing="1.6">{i+1:02d} / {escape(p["repo"])}</text>'
-      f'<text x="{w-28}" y="44" class="M" font-size="12" fill="{MUTED}" text-anchor="end">live ↗</text></g>'
+      f'<text x="{w-28}" y="44" class="M" font-size="12" fill="{GREEN}" text-anchor="end">live ↗</text></g>'
       f'<g class="up"{d(.5+i*.15)}><text x="26" y="92" class="S" font-size="40" fill="{INK}">{escape(p["title"])}</text></g>')
     for j, line in enumerate(wrap(p["desc"], 52)[:2]):
         body += f'<text x="28" y="{124+j*20}" class="M up" font-size="13" fill="{MUTED}"{d(.65+i*.15)}>{escape(line)}</text>'
@@ -236,7 +237,7 @@ for i, p in enumerate(P["projects"]):
     body += f'<g class="up"{d(.8+i*.15)}><line x1="28" y1="160" x2="{w-28}" y2="160" stroke="{LINE}"/>'
     body += f'<rect x="28" y="{yb-13}" width="{len(r["lang"])*7.4+20:.0f}" height="20" rx="10" fill="none" stroke="{LINE}"/><text x="{38}" y="{yb+1}" class="M" font-size="11" fill="{INK}">{escape(r["lang"])}</text>'
     sx = 28 + len(r["lang"]) * 7.4 + 40
-    body += star(sx, yb - 3, 12, INK if r["stars"] else MUTED) + f'<text x="{sx+11:.0f}" y="{yb+1}" class="M" font-size="12" fill="{INK}">{r["stars"]}</text>'
+    body += star(sx, yb - 3, 12, GREEN if r["stars"] else MUTED) + f'<text x="{sx+11:.0f}" y="{yb+1}" class="M" font-size="12" fill="{INK}">{r["stars"]}</text>'
     fx = sx + 26 + len(str(r["stars"])) * 7.2 + 18
     body += fork(fx, yb - 3, INK if r["forks"] else MUTED) + f'<text x="{fx+11:.0f}" y="{yb+1}" class="M" font-size="12" fill="{INK}">{r["forks"]}</text>'
     body += f'<text x="{w-28}" y="{yb+1}" class="M" font-size="11" fill="{DIM}" text-anchor="end">{escape(host[:34])}</text></g>'
