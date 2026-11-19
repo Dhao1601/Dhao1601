@@ -1,0 +1,14 @@
+{
+  "tagline": "I build interactive web toys: hand tracking, 3D particles, ASCII art.",
+  "handles": "tiktok @binnanee  ·  github @Dhao1601",
+  "projects": [
+    {"repo": "tarotcuabin", "title": "Tarot AR", "link": "https://tarotcuabin.vercel.app",
+     "desc": "Pick tarot cards in mid-air with your hand. MediaPipe Hands + Three.js particles."},
+    {"repo": "carrot-pen", "title": "Carrot Pen", "link": "https://dhao1601.github.io/carrot-pen/",
+     "desc": "A greeting card you play with gestures: particles follow your hand in 3D."},
+    {"repo": "xmas-tree", "title": "Grand Luxury Tree", "link": "https://dhao1601.github.io/xmas-tree/",
+     "desc": "A Christmas tree made of particles that you steer with hand gestures."},
+    {"repo": "gui-na-yeu-cua-anh", "title": "gửi na yêu của anh", "link": "https://dhao1601.github.io/gui-na-yeu-cua-anh/",
+     "desc": "A 3D lily bouquet rendered in ASCII, with a letter that types itself."}
+  ]
+}
