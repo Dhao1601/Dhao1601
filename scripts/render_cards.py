@@ -161,7 +161,7 @@ body = (frame(W, 270) + dots(W, 270) +
   f'<g class="fade"{d(1.1+tdur)}><g class="cur"><rect x="{56+tw+3:.1f}" y="154" width="9" height="17" fill="{INK}"/></g></g>'
   f'<line x1="56" y1="206" x2="{W-56}" y2="206" stroke="{LINE}"/>'
   f'<g class="fade"{d(2.6)}><text x="56" y="236" class="M" font-size="13" fill="{MUTED}">{escape(hand)}</text>'
-  f'<text x="{W-56}" y="236" class="M" font-size="13" fill="{DIM}" text-anchor="end">updated {D["updated"]}</text></g>')
+  '</g>')
 write("hero.svg", svg(W, 270, body, ["mono", "serif"], name + tag + hand + USER.upper() + "~/ONLINE updated 0123456789-"))
 
 # ------------------------------------------------------------------ stats
