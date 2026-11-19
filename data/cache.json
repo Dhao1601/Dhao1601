@@ -1,10 +1,10 @@
 {
- "name": "binnanee",
+ "name": "Bin",
  "followers": 50,
  "public_repos": 23,
  "stars": 43,
  "forks": 52,
- "contributions": 43,
+ "contributions": 467,
  "days": [
   {
    "date": "2025-11-16",
@@ -1300,107 +1300,107 @@
   },
   {
    "date": "2026-10-05",
-   "contributionCount": 0
-  },
-  {
-   "date": "2026-10-06",
-   "contributionCount": 0
-  },
-  {
-   "date": "2026-10-07",
-   "contributionCount": 0
-  },
-  {
-   "date": "2026-10-08",
-   "contributionCount": 0
-  },
-  {
-   "date": "2026-10-09",
-   "contributionCount": 0
-  },
-  {
-   "date": "2026-10-10",
-   "contributionCount": 0
-  },
-  {
-   "date": "2026-10-11",
    "contributionCount": 4
   },
   {
+   "date": "2026-10-06",
+   "contributionCount": 43
+  },
+  {
+   "date": "2026-10-07",
+   "contributionCount": 22
+  },
+  {
+   "date": "2026-10-08",
+   "contributionCount": 19
+  },
+  {
+   "date": "2026-10-09",
+   "contributionCount": 28
+  },
+  {
+   "date": "2026-10-10",
+   "contributionCount": 24
+  },
+  {
+   "date": "2026-10-11",
+   "contributionCount": 28
+  },
+  {
    "date": "2026-10-12",
-   "contributionCount": 0
+   "contributionCount": 6
   },
   {
    "date": "2026-10-13",
-   "contributionCount": 0
+   "contributionCount": 13
   },
   {
    "date": "2026-10-14",
-   "contributionCount": 0
+   "contributionCount": 5
   },
   {
    "date": "2026-10-15",
-   "contributionCount": 0
+   "contributionCount": 11
   },
   {
    "date": "2026-10-16",
-   "contributionCount": 0
+   "contributionCount": 24
   },
   {
    "date": "2026-10-17",
-   "contributionCount": 0
+   "contributionCount": 7
   },
   {
    "date": "2026-10-18",
-   "contributionCount": 0
+   "contributionCount": 27
   },
   {
    "date": "2026-10-19",
-   "contributionCount": 0
+   "contributionCount": 4
   },
   {
    "date": "2026-10-20",
-   "contributionCount": 0
+   "contributionCount": 1
   },
   {
    "date": "2026-10-21",
-   "contributionCount": 0
+   "contributionCount": 7
   },
   {
    "date": "2026-10-22",
-   "contributionCount": 0
+   "contributionCount": 13
   },
   {
    "date": "2026-10-23",
-   "contributionCount": 0
+   "contributionCount": 33
   },
   {
    "date": "2026-10-24",
-   "contributionCount": 0
+   "contributionCount": 10
   },
   {
    "date": "2026-10-25",
-   "contributionCount": 0
+   "contributionCount": 8
   },
   {
    "date": "2026-10-26",
-   "contributionCount": 0
+   "contributionCount": 12
   },
   {
    "date": "2026-10-27",
-   "contributionCount": 0
+   "contributionCount": 3
   },
   {
    "date": "2026-10-28",
-   "contributionCount": 0
+   "contributionCount": 33
   },
   {
    "date": "2026-10-29",
-   "contributionCount": 0
+   "contributionCount": 13
   },
   {
    "date": "2026-10-30",
-   "contributionCount": 0
+   "contributionCount": 18
   },
   {
    "date": "2026-10-31",
@@ -1408,15 +1408,15 @@
   },
   {
    "date": "2026-11-01",
-   "contributionCount": 0
+   "contributionCount": 5
   },
   {
    "date": "2026-11-02",
-   "contributionCount": 0
+   "contributionCount": 3
   },
   {
    "date": "2026-11-03",
-   "contributionCount": 0
+   "contributionCount": 3
   },
   {
    "date": "2026-11-04",
@@ -1472,7 +1472,7 @@
   },
   {
    "date": "2026-11-17",
-   "contributionCount": 0
+   "contributionCount": 1
   },
   {
    "date": "2026-11-18",
@@ -1485,7 +1485,7 @@
  ],
  "langs": {
   "HTML": 730155,
-  "Python": 24395,
+  "Python": 24441,
   "TypeScript": 2800937,
   "CSS": 17988,
   "JavaScript": 19963

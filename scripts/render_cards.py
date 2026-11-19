@@ -143,7 +143,7 @@ def write(name, content):
 
 # ------------------------------------------------------------------ hero
 W = 1000
-name = D["name"]; tag = "> " + P["tagline"]; hand = P["handles"]
+name = P.get("display_name") or D["name"]; tag = "> " + P["tagline"]; hand = P["handles"]
 cw = 15 * .6
 steps = len(tag); tw = steps * cw; tdur = steps * .035
 type_css = "" if STATIC else f"animation:type {tdur:.2f}s steps({steps}) 1.1s both;transform-box:fill-box;transform-origin:0 50%"

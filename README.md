@@ -1,6 +1,7 @@
 <div align="center">
+<a href="https://github.com/Dhao1601"><img src="cards/banner.svg" width="100%" alt="Bin — ASCII cat"></a>
 
-<a href="https://github.com/Dhao1601"><img src="cards/hero.svg" width="100%" alt="binnanee — I build interactive web toys"></a>
+<a href="https://github.com/Dhao1601"><img src="cards/hero.svg" width="100%" alt="Bin — I build interactive web toys"></a>
 
 <a href="https://github.com/Dhao1601?tab=repositories"><img src="cards/stats.svg" width="100%" alt="GitHub stats"></a>
 
